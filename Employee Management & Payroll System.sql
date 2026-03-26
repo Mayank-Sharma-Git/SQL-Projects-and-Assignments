@@ -1,5 +1,5 @@
 # Employee Management & Payroll System
- Drop database Employee_Management_And_Payroll_System;
+
 CREATE DATABASE  Employee_Management_And_Payroll_System; 
 
 USE Employee_Management_And_Payroll_System;
@@ -585,7 +585,6 @@ DROP INDEX empname On employees;
 
 # 48. Create a user for HR with read-only access. 
 
-DROP USER 'HR'@'LOCALHOST';
 CREATE USER 'HR'@'LOCALHOST' IDENTIFIED BY 'HR_readOnly';
 GRANT SELECT ON employee_management_and_payroll_system.* TO 'HR'@'LOCALHOST';
 
@@ -595,7 +594,6 @@ GRANT INSERT ON employee_management_and_payroll_system.attendence TO 'HR'@'LOCAL
 
 # 50. Revoke DELETE permission from a user. 
 
-DROP USER 'IThead'@'LOCALHOST';
 CREATE USER 'IThead'@'LOCALHOST' IDENTIFIED BY 'IT_HEAD';
 GRANT DELETE ON employee_management_and_payroll_system.* TO 'IThead'@'LOCALHOST';
 REVOKE DELETE ON employee_management_and_payroll_system.* FROM 'IThead'@'LOCALHOST';
@@ -704,3 +702,42 @@ ON s.emp_id = e.emp_id
 GROUP BY e.emp_name, d.dept_name, s.basic + s.hra + s.bonus;
 
 # 57. Write a query to rank employees based on salary (without window functions). 
+
+SELECT e.emp_name, s.basic + s.hra + s.bonus AS Total_salary,
+	( SELECT COUNT(*) FROM salary s2 
+    WHERE (s2.basic + s2.hra + s2.bonus) > (s.basic + s.hra + s.bonus)) + 1 AS sal_rank 
+FROM employees e
+JOIN salary s
+ON s.emp_id = e.emp_id
+ORDER BY sal_rank;
+
+# 58. Find the top 2 highest paid employees in each department.
+
+SELECT * FROM(
+	SELECT  e.emp_name,  d.dept_name, (s.basic + s.hra + s.bonus) AS Total_Salary ,
+		( SELECT COUNT(*) 
+		FROM salary s2
+		JOIN employees e2 ON e2.emp_id =  s2.emp_id
+		WHERE (s2.basic + s2.hra + s2.bonus) > (s.basic + s.hra + s.bonus) 
+		AND e2.dept_id = e.dept_id)
+		+ 1 AS sal_rank
+	FROM employees e 
+	JOIN salary s
+	ON e.emp_id = s.emp_id
+	JOIN departments d
+	ON d.dept_id = e.dept_id) AS ranked
+WHERE sal_rank <=2 
+ORDER BY dept_name, sal_rank;
+
+
+
+
+
+
+
+
+
+
+
+
+
